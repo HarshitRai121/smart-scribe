@@ -1,6 +1,60 @@
+import { useState } from 'react';
 import Editor from './Editor';
+import AiSidebar from './AiSidebar';
+
+// Function to handle different AI prompts
+const getPromptText = (promptType, content) => {
+  switch (promptType) {
+    case 'summarize':
+      return `Summarize the following text:\n\n${content}`;
+    case 'improve':
+      return `Improve the grammar and writing style of the following text:\n\n${content}`;
+    case 'continue':
+      return `Continue writing from the following text:\n\n${content}`;
+    default:
+      return content;
+  }
+};
 
 function App() {
+  const [editorContent, setEditorContent] = useState('');
+  const [loading, setLoading] = useState({
+    continue: false,
+    summarize: false,
+    improve: false
+  });
+
+  const handleGenerateText = async (promptType) => {
+    // Set the loading state for only the clicked button
+    setLoading(prev => ({ ...prev, [promptType]: true }));
+
+    const finalPrompt = getPromptText(promptType, editorContent);
+
+    try {
+      const response = await fetch('/api/generate-text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: finalPrompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      console.log('AI Response:', data.generatedText);
+      alert('AI Response: ' + data.generatedText);
+    } catch (error) {
+      console.error('Error fetching AI response:', error);
+      alert('Error fetching AI response.');
+    } finally {
+      // Reset the loading state for only the clicked button
+      setLoading(prev => ({ ...prev, [promptType]: false }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="flex flex-col items-center justify-center mb-8">
@@ -11,13 +65,10 @@ function App() {
       </div>
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Editor />
+          <Editor setEditorContent={setEditorContent} />
         </div>
-        <div className="md:col-span-1 bg-gray-800 p-4 rounded-lg shadow-xl">
-          <h2 className="text-2xl font-semibold mb-4">AI Actions</h2>
-          <p className="text-gray-400">
-            Select text in the editor to see more AI actions.
-          </p>
+        <div className="md:col-span-1">
+          <AiSidebar handleGenerateText={handleGenerateText} loading={loading} />
         </div>
       </div>
     </div>
