@@ -1,43 +1,48 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+import express from 'express';
+import cors from 'cors';
+import { config } from 'dotenv';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Load API key from .env file
-const API_KEY = process.env.GOOGLE_API_KEY;
-if (!API_KEY) {
-  throw new Error('GOOGLE_API_KEY is not set in the .env file');
-}
+config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize the Google Generative AI
-const genAI = new GoogleGenerativeAI(API_KEY);
-
-// Middleware
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
-// A new, dedicated API endpoint for the frontend AI requests
+// Initialize the Google Generative AI client
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+
 app.post('/api/generate-text', async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({ error: 'Prompt is required.' });
+  }
+
   try {
-    const { prompt } = req.body;
-    if (!prompt) {
-      return res.status(400).json({ error: 'Prompt is required' });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const result = await model.generateContentStream({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    for await (const chunk of result.stream) {
+      // CORRECTED: The text is now retrieved by calling the text() method
+      const textChunk = chunk.text();
+      res.write(textChunk);
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // <-- Updated model name
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const generatedText = response.text();
-
-    res.status(200).json({ generatedText });
+    
+    res.end();
 
   } catch (error) {
-    console.error('Error in AI endpoint:', error);
-    res.status(500).json({ error: 'An internal server error occurred.' });
+    console.error('Error generating text:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

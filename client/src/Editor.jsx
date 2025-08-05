@@ -4,7 +4,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $isRangeSelection } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $isRangeSelection, $isParagraphNode } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect } from 'react';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
@@ -40,9 +40,7 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent }) {
     });
   };
 
-  // New useEffect hook to manually listen for updates, including selection changes
   useEffect(() => {
-    // This is the function that will run every time the editor state updates
     const unregisterListener = editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
         const selection = $getSelection();
@@ -54,18 +52,16 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent }) {
         }
       });
     });
-
-    // The return function will be called when the component unmounts
     return unregisterListener;
   }, [editor, setSelectedContent]);
 
   useEffect(() => {
     if (aiText) {
       editor.update(() => {
+        const root = $getRoot();
         const paragraphNode = $createParagraphNode();
         const textNode = $createTextNode(aiText);
         paragraphNode.append(textNode);
-        const root = $getRoot();
         root.append(paragraphNode);
       });
     }

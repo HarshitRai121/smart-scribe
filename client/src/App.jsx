@@ -17,19 +17,18 @@ const getPromptText = (promptType, content) => {
 
 function App() {
   const [editorContent, setEditorContent] = useState('');
-  // New state to hold the user's selected text
   const [selectedContent, setSelectedContent] = useState('');
   const [loading, setLoading] = useState({
     continue: false,
     summarize: false,
     improve: false
   });
-  const [aiText, setAiText] = useState('');
+  // State for the one-time insertion after stream completion
+  const [aiText, setAiText] = useState(null);
 
   const handleGenerateText = async (promptType) => {
     setLoading(prev => ({ ...prev, [promptType]: true }));
 
-    // Use selectedContent if it exists, otherwise use the whole editor's content
     const contentToSend = selectedContent || editorContent;
     const finalPrompt = getPromptText(promptType, contentToSend);
 
@@ -45,9 +44,23 @@ function App() {
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let aiResponseText = '';
 
-      const data = await response.json();
-      setAiText(data.generatedText);
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        const chunk = decoder.decode(value);
+        if (chunk) {
+          aiResponseText += chunk;
+        }
+      }
+
+      setAiText(aiResponseText);
+
     } catch (error) {
       console.error('Error fetching AI response:', error);
       alert('Error fetching AI response.');
@@ -66,7 +79,11 @@ function App() {
       </div>
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Editor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} />
+          <Editor 
+            setEditorContent={setEditorContent} 
+            setSelectedContent={setSelectedContent} 
+            aiText={aiText}
+          />
         </div>
         <div className="md:col-span-1">
           <AiSidebar handleGenerateText={handleGenerateText} loading={loading} />
