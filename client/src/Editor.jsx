@@ -4,7 +4,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { $getRoot, $createParagraphNode, $createTextNode } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $isRangeSelection } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect } from 'react';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
@@ -30,8 +30,7 @@ const theme = {
   placeholder: "text-gray-500 overflow-hidden text-ellipsis"
 };
 
-// This is the component that houses the editor plugins
-function MyCustomEditor({ setEditorContent, aiText }) {
+function MyCustomEditor({ setEditorContent, aiText, setSelectedContent }) {
   const [editor] = useLexicalComposerContext();
 
   const handleChange = (editorState) => {
@@ -40,6 +39,25 @@ function MyCustomEditor({ setEditorContent, aiText }) {
       setEditorContent(root.getTextContent());
     });
   };
+
+  // New useEffect hook to manually listen for updates, including selection changes
+  useEffect(() => {
+    // This is the function that will run every time the editor state updates
+    const unregisterListener = editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const selectedText = selection.getTextContent();
+          setSelectedContent(selectedText);
+        } else {
+          setSelectedContent('');
+        }
+      });
+    });
+
+    // The return function will be called when the component unmounts
+    return unregisterListener;
+  }, [editor, setSelectedContent]);
 
   useEffect(() => {
     if (aiText) {
@@ -77,15 +95,14 @@ const initialConfig = {
   onError(error) {
     console.error(error);
   },
-  // CORRECTED: Added LinkNode to the nodes array
   nodes: [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode],
 };
 
-export default function Editor({ setEditorContent, aiText }) {
+export default function Editor({ setEditorContent, aiText, setSelectedContent }) {
   return (
     <div className="relative w-full h-full bg-gray-700 text-white rounded-lg shadow-xl">
       <LexicalComposer initialConfig={initialConfig}>
-        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} />
+        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} />
       </LexicalComposer>
     </div>
   );

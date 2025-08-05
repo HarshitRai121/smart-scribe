@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Editor from './Editor';
 import AiSidebar from './AiSidebar';
 
-// Function to handle different AI prompts
 const getPromptText = (promptType, content) => {
   switch (promptType) {
     case 'summarize':
@@ -18,18 +17,21 @@ const getPromptText = (promptType, content) => {
 
 function App() {
   const [editorContent, setEditorContent] = useState('');
+  // New state to hold the user's selected text
+  const [selectedContent, setSelectedContent] = useState('');
   const [loading, setLoading] = useState({
     continue: false,
     summarize: false,
     improve: false
   });
-  // New state to hold AI-generated text
   const [aiText, setAiText] = useState('');
 
   const handleGenerateText = async (promptType) => {
     setLoading(prev => ({ ...prev, [promptType]: true }));
 
-    const finalPrompt = getPromptText(promptType, editorContent);
+    // Use selectedContent if it exists, otherwise use the whole editor's content
+    const contentToSend = selectedContent || editorContent;
+    const finalPrompt = getPromptText(promptType, contentToSend);
 
     try {
       const response = await fetch('/api/generate-text', {
@@ -45,7 +47,6 @@ function App() {
       }
 
       const data = await response.json();
-      // Store the AI-generated text in state
       setAiText(data.generatedText);
     } catch (error) {
       console.error('Error fetching AI response:', error);
@@ -65,7 +66,7 @@ function App() {
       </div>
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Editor setEditorContent={setEditorContent} aiText={aiText} />
+          <Editor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} />
         </div>
         <div className="md:col-span-1">
           <AiSidebar handleGenerateText={handleGenerateText} loading={loading} />
@@ -73,7 +74,6 @@ function App() {
       </div>
     </div>
   );
-
 }
 
 export default App;
