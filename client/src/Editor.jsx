@@ -13,6 +13,20 @@ const theme = {
   paragraph: "my-2",
 };
 
+// Function to handle different AI prompts
+const getPromptText = (promptType, content) => {
+  switch (promptType) {
+    case 'summarize':
+      return `Summarize the following text:\n\n${content}`;
+    case 'improve':
+      return `Improve the grammar and writing style of the following text:\n\n${content}`;
+    case 'continue':
+      return `Continue writing from the following text:\n\n${content}`;
+    default:
+      return content;
+  }
+};
+
 // Lexical React plugins are necessary to render and manage the editor
 function MyCustomEditor() {
   const [editor] = useLexicalComposerContext();
@@ -31,7 +45,7 @@ function MyCustomEditor() {
   };
 
   // Function to send a prompt to the backend
-  const handleGenerateText = async () => {
+  const handleGenerateText = async (promptType = 'continue') => {
     setLoading(true);
     let editorContent = '';
     editor.update(() => {
@@ -39,13 +53,16 @@ function MyCustomEditor() {
       editorContent = root.getTextContent();
     });
 
+    // Create the final prompt based on the type
+    const finalPrompt = getPromptText(promptType, editorContent);
+
     try {
       const response = await fetch('/api/generate-text', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt: editorContent }),
+        body: JSON.stringify({ prompt: finalPrompt }),
       });
 
       if (!response.ok) {
@@ -73,10 +90,10 @@ function MyCustomEditor() {
       <div className="flex justify-end p-2 bg-gray-600 rounded-b-lg">
         <button 
           className="px-4 py-2 bg-blue-600 rounded-md text-white hover:bg-blue-700 transition-colors disabled:bg-gray-500"
-          onClick={handleGenerateText}
+          onClick={() => handleGenerateText('continue')}
           disabled={loading}
         >
-          {loading ? 'Generating...' : 'Generate Text'}
+          {loading ? 'Generating...' : 'Continue Writing'}
         </button>
       </div>
     </>
