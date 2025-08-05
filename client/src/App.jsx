@@ -1,7 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    fetch('/api/') // <-- Update the fetch to use the '/api/' path
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => setMessage(data.message))
+      .catch(error => console.error('Error fetching data:', error));
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
@@ -10,15 +22,12 @@ function App() {
         AI-Powered Document Editor
       </p>
       <div className="p-8 bg-gray-800 rounded-lg shadow-xl flex items-center gap-4">
-        <button
-          className="px-4 py-2 bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+        <p className="text-xl">
+          Backend says: <span className="text-blue-400 font-medium">{message}</span>
+        </p>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

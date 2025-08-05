@@ -9,9 +9,9 @@ const PORT = process.env.PORT || 3001;
 app.use(express.json());
 app.use(cors());
 
-// Basic API route
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Hello from the backend!' });
+// A new, dedicated API endpoint for the frontend
+app.get('/api/', (req, res) => {
+  res.status(200).json({ message: 'Hello from the backend API!' });
 });
 
 app.listen(PORT, () => {
