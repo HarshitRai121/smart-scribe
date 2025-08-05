@@ -23,9 +23,10 @@ function App() {
     summarize: false,
     improve: false
   });
+  // New state to hold AI-generated text
+  const [aiText, setAiText] = useState('');
 
   const handleGenerateText = async (promptType) => {
-    // Set the loading state for only the clicked button
     setLoading(prev => ({ ...prev, [promptType]: true }));
 
     const finalPrompt = getPromptText(promptType, editorContent);
@@ -44,13 +45,12 @@ function App() {
       }
 
       const data = await response.json();
-      console.log('AI Response:', data.generatedText);
-      alert('AI Response: ' + data.generatedText);
+      // Store the AI-generated text in state
+      setAiText(data.generatedText);
     } catch (error) {
       console.error('Error fetching AI response:', error);
       alert('Error fetching AI response.');
     } finally {
-      // Reset the loading state for only the clicked button
       setLoading(prev => ({ ...prev, [promptType]: false }));
     }
   };
@@ -65,7 +65,7 @@ function App() {
       </div>
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Editor setEditorContent={setEditorContent} />
+          <Editor setEditorContent={setEditorContent} aiText={aiText} />
         </div>
         <div className="md:col-span-1">
           <AiSidebar handleGenerateText={handleGenerateText} loading={loading} />
@@ -73,6 +73,7 @@ function App() {
       </div>
     </div>
   );
+
 }
 
 export default App;

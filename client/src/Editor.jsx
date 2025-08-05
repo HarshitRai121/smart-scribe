@@ -4,21 +4,37 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { $getRoot } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode } from 'lexical';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { useEffect } from 'react';
 
 const theme = {
   placeholder: "text-gray-500 overflow-hidden text-ellipsis",
   paragraph: "my-2",
 };
 
-function MyCustomEditor({ setEditorContent }) {
+// This is the component that houses the editor plugins
+function MyCustomEditor({ setEditorContent, aiText }) {
+  const [editor] = useLexicalComposerContext();
+
   const handleChange = (editorState) => {
     editorState.read(() => {
-      // CORRECTED: Use $getRoot() instead of editorState.root
       const root = $getRoot();
       setEditorContent(root.getTextContent());
     });
   };
+
+  useEffect(() => {
+    if (aiText) {
+      editor.update(() => {
+        const paragraphNode = $createParagraphNode();
+        const textNode = $createTextNode(aiText);
+        paragraphNode.append(textNode);
+        const root = $getRoot();
+        root.append(paragraphNode);
+      });
+    }
+  }, [aiText, editor]);
 
   return (
     <>
@@ -41,11 +57,11 @@ const initialConfig = {
   },
 };
 
-export default function Editor({ setEditorContent }) {
+export default function Editor({ setEditorContent, aiText }) {
   return (
     <div className="relative w-full h-full bg-gray-700 text-white rounded-lg shadow-xl">
       <LexicalComposer initialConfig={initialConfig}>
-        <MyCustomEditor setEditorContent={setEditorContent} />
+        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} />
       </LexicalComposer>
     </div>
   );
