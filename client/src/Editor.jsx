@@ -5,7 +5,8 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useState } from 'react';
-import { $getRoot } from 'lexical'; // <-- We need this new import
+import { $getRoot, $insertNodes } from 'lexical';
+import { $createParagraphNode, $createTextNode } from 'lexical';
 
 const theme = {
   placeholder: "text-gray-500 overflow-hidden text-ellipsis",
@@ -17,12 +18,23 @@ function MyCustomEditor() {
   const [editor] = useLexicalComposerContext();
   const [loading, setLoading] = useState(false);
 
+  // Function to insert a new paragraph with the given text
+  const insertTextIntoEditor = (text) => {
+    editor.update(() => {
+      const paragraphNode = $createParagraphNode();
+      const textNode = $createTextNode(text);
+      paragraphNode.append(textNode);
+
+      const root = $getRoot();
+      root.append(paragraphNode);
+    });
+  };
+
   // Function to send a prompt to the backend
   const handleGenerateText = async () => {
     setLoading(true);
     let editorContent = '';
     editor.update(() => {
-      // CORRECTED: Use $getRoot() to get the content reliably
       const root = $getRoot();
       editorContent = root.getTextContent();
     });
@@ -41,8 +53,7 @@ function MyCustomEditor() {
       }
 
       const data = await response.json();
-      console.log('AI Response:', data.generatedText);
-      alert('AI Response: ' + data.generatedText);
+      insertTextIntoEditor(data.generatedText);
     } catch (error) {
       console.error('Error fetching AI response:', error);
       alert('Error fetching AI response.');
