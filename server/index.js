@@ -27,11 +27,13 @@ app.post('/api/generate-text', async (req, res) => {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
-    // For this step, we will just log the prompt to the console.
-    // In the next step, we will add the code to call the AI.
-    console.log(`Received prompt: ${prompt}`);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // <-- Updated model name
 
-    res.status(200).json({ generatedText: 'This is a placeholder for AI-generated text.' });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const generatedText = response.text();
+
+    res.status(200).json({ generatedText });
 
   } catch (error) {
     console.error('Error in AI endpoint:', error);
