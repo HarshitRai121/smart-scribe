@@ -4,7 +4,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary'; // <-- CORRECTED IMPORT
+import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
 
 const theme = {
   // Add styling for our editor here using Tailwind CSS classes
