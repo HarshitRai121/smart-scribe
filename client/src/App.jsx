@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Editor from './Editor';
 import AiSidebar from './AiSidebar';
 
@@ -23,8 +23,10 @@ function App() {
     summarize: false,
     improve: false
   });
-  // State for the one-time insertion after stream completion
   const [aiText, setAiText] = useState(null);
+
+  // New state to hold loaded content
+  const [loadedContent, setLoadedContent] = useState(null);
 
   const handleGenerateText = async (promptType) => {
     setLoading(prev => ({ ...prev, [promptType]: true }));
@@ -69,6 +71,33 @@ function App() {
     }
   };
 
+  const handleSaveDocument = () => {
+    try {
+      localStorage.setItem('smart-scribe-document', editorContent);
+      alert('Document saved successfully!');
+    } catch (error) {
+      console.error('Error saving document:', error);
+      alert('Could not save document.');
+    }
+  };
+
+  const handleLoadDocument = () => {
+    try {
+      const savedContent = localStorage.getItem('smart-scribe-document');
+      if (savedContent) {
+        // Set the loaded content into the state.
+        // The Editor component will pick this up via a useEffect.
+        setLoadedContent(savedContent);
+        alert('Document loaded successfully!');
+      } else {
+        alert('No saved document found.');
+      }
+    } catch (error) {
+      console.error('Error loading document:', error);
+      alert('Could not load document.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="flex flex-col items-center justify-center mb-8">
@@ -83,10 +112,16 @@ function App() {
             setEditorContent={setEditorContent} 
             setSelectedContent={setSelectedContent} 
             aiText={aiText}
+            loadedContent={loadedContent}
           />
         </div>
         <div className="md:col-span-1">
-          <AiSidebar handleGenerateText={handleGenerateText} loading={loading} />
+          <AiSidebar 
+            handleGenerateText={handleGenerateText} 
+            loading={loading}
+            handleSaveDocument={handleSaveDocument}
+            handleLoadDocument={handleLoadDocument} 
+          />
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const AiSidebar = ({ handleGenerateText, loading }) => {
+const AiSidebar = ({ handleGenerateText, loading, handleSaveDocument, handleLoadDocument }) => {
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-lg h-full flex flex-col">
       <h2 className="text-xl font-bold mb-4">AI Actions</h2>
@@ -38,13 +38,13 @@ const AiSidebar = ({ handleGenerateText, loading }) => {
         <div className="flex flex-col space-y-4">
           <button
             className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-            onClick={() => {}} // We will add the save logic here next
+            onClick={handleSaveDocument}
           >
             Save Document
           </button>
           <button
             className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
-            onClick={() => {}} // We will add the load logic here next
+            onClick={handleLoadDocument}
           >
             Load Document
           </button>
