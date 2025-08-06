@@ -1,6 +1,6 @@
 import React from 'react';
 
-const AiSidebar = ({ handleGenerateText, loading, handleSaveDocument, handleLoadDocument, handleExportDocument }) => {
+const AiSidebar = ({ handleGenerateText, loading, handleSaveDocument, handleLoadDocument, handleExportDocument, handleExportMarkdown }) => {
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-lg h-full flex flex-col">
       <h2 className="text-xl font-bold mb-4">AI Actions</h2>
@@ -60,6 +60,12 @@ const AiSidebar = ({ handleGenerateText, loading, handleSaveDocument, handleLoad
             onClick={handleExportDocument}
           >
             Export as Text
+          </button>
+          <button
+            className="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+            onClick={handleExportMarkdown}
+          >
+            Export as Markdown
           </button>
         </div>
       </div>
