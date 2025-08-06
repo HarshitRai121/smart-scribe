@@ -12,6 +12,13 @@ const AiSidebar = ({ handleGenerateText, loading, handleSaveDocument, handleLoad
       <div className="flex flex-col space-y-4">
         <button
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
+          onClick={() => handleGenerateText('rewrite')}
+          disabled={loading.rewrite}
+        >
+          {loading.rewrite ? 'Rewriting...' : 'Rewrite'}
+        </button>
+        <button
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200"
           onClick={() => handleGenerateText('improve')}
           disabled={loading.improve}
         >
