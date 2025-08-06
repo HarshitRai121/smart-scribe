@@ -10,6 +10,8 @@ const getPromptText = (promptType, content) => {
       return `Improve the grammar and writing style of the following text:\n\n${content}`;
     case 'continue':
       return `Continue writing from the following text:\n\n${content}`;
+    case 'rewrite':
+        return `Rewrite the following text to improve its clarity and flow:\n\n${content}`;
     default:
       return content;
   }
@@ -21,7 +23,8 @@ function App() {
   const [loading, setLoading] = useState({
     continue: false,
     summarize: false,
-    improve: false
+    improve: false,
+    rewrite: false
   });
   const [aiText, setAiText] = useState(null);
 
