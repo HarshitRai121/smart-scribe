@@ -25,7 +25,6 @@ function App() {
   });
   const [aiText, setAiText] = useState(null);
 
-  // New state to hold loaded content
   const [loadedContent, setLoadedContent] = useState(null);
 
   const handleGenerateText = async (promptType) => {
@@ -85,8 +84,6 @@ function App() {
     try {
       const savedContent = localStorage.getItem('smart-scribe-document');
       if (savedContent) {
-        // Set the loaded content into the state.
-        // The Editor component will pick this up via a useEffect.
         setLoadedContent(savedContent);
         alert('Document loaded successfully!');
       } else {
@@ -95,6 +92,22 @@ function App() {
     } catch (error) {
       console.error('Error loading document:', error);
       alert('Could not load document.');
+    }
+  };
+
+  const handleExportDocument = () => {
+    if (editorContent) {
+      const blob = new Blob([editorContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'smart-scribe-document.txt';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      alert('The document is empty. Nothing to export.');
     }
   };
 
@@ -120,7 +133,8 @@ function App() {
             handleGenerateText={handleGenerateText} 
             loading={loading}
             handleSaveDocument={handleSaveDocument}
-            handleLoadDocument={handleLoadDocument} 
+            handleLoadDocument={handleLoadDocument}
+            handleExportDocument={handleExportDocument} 
           />
         </div>
       </div>
