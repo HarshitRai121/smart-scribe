@@ -4,7 +4,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $isRangeSelection, $isParagraphNode } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $isRangeSelection, CLEAR_EDITOR_COMMAND } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect } from 'react';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
@@ -30,7 +30,7 @@ const theme = {
   placeholder: "text-gray-500 overflow-hidden text-ellipsis"
 };
 
-function MyCustomEditor({ setEditorContent, aiText, setSelectedContent }) {
+function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedContent }) {
   const [editor] = useLexicalComposerContext();
 
   const handleChange = (editorState) => {
@@ -67,6 +67,20 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent }) {
     }
   }, [aiText, editor]);
 
+  // NEW: Effect to load content when the loadedContent prop changes
+  useEffect(() => {
+    if (loadedContent !== null) {
+      editor.update(() => {
+        editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined);
+        const root = $getRoot();
+        const paragraphNode = $createParagraphNode();
+        const textNode = $createTextNode(loadedContent);
+        paragraphNode.append(textNode);
+        root.append(paragraphNode);
+      });
+    }
+  }, [loadedContent, editor]);
+
   return (
     <>
       <Toolbar />
@@ -94,11 +108,11 @@ const initialConfig = {
   nodes: [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode],
 };
 
-export default function Editor({ setEditorContent, aiText, setSelectedContent }) {
+export default function Editor({ setEditorContent, aiText, setSelectedContent, loadedContent }) {
   return (
     <div className="relative w-full h-full bg-gray-700 text-white rounded-lg shadow-xl">
       <LexicalComposer initialConfig={initialConfig}>
-        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} />
+        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} loadedContent={loadedContent} />
       </LexicalComposer>
     </div>
   );
