@@ -16,6 +16,8 @@ const getPromptText = (promptType, content) => {
       return `Generate a concise and compelling title for the following text:\n\n${content}`;
     case 'checkSpelling':
       return `Check the following text for spelling and grammar errors and correct them. Provide only the corrected text as the response:\n\n${content}`;
+    case 'changeTone':
+      return `Rewrite the following text to be more professional, formal, or friendly. Provide the revised text as the response:\n\n${content}`;
     default:
       return content;
   }
@@ -31,6 +33,7 @@ function App() {
     rewrite: false,
     generateTitle: false,
     checkSpelling: false,
+    changeTone: false,
   });
   const [aiText, setAiText] = useState(null);
   const [loadedContent, setLoadedContent] = useState(null);
