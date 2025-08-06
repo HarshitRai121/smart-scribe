@@ -13,6 +13,11 @@ import { ListPlugin } from '@lexical/react/LexicalListPlugin';
 import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import Toolbar from './Toolbar';
 import { LinkNode } from '@lexical/link';
+import {
+  $convertFromMarkdownString,
+  $convertToMarkdownString,
+  TRANSFORMERS,
+} from '@lexical/markdown';
 
 const theme = {
   text: {
@@ -30,7 +35,7 @@ const theme = {
   placeholder: "text-gray-500 overflow-hidden text-ellipsis"
 };
 
-function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedContent }) {
+function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedContent, setGetMarkdownContent }) {
   const [editor] = useLexicalComposerContext();
 
   const handleChange = (editorState) => {
@@ -67,7 +72,6 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedCo
     }
   }, [aiText, editor]);
 
-  // NEW: Effect to load content when the loadedContent prop changes
   useEffect(() => {
     if (loadedContent !== null) {
       editor.update(() => {
@@ -80,6 +84,18 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedCo
       });
     }
   }, [loadedContent, editor]);
+  
+  // NEW: Expose the getMarkdownContent function to the parent component
+  useEffect(() => {
+    const getMarkdown = () => {
+      let markdownString = '';
+      editor.getEditorState().read(() => {
+        markdownString = $convertToMarkdownString(TRANSFORMERS);
+      });
+      return markdownString;
+    };
+    setGetMarkdownContent(() => getMarkdown);
+  }, [editor, setGetMarkdownContent]);
 
   return (
     <>
@@ -105,14 +121,20 @@ const initialConfig = {
   onError(error) {
     console.error(error);
   },
-  nodes: [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode],
+  nodes: [
+    HeadingNode,
+    QuoteNode,
+    ListNode,
+    ListItemNode,
+    LinkNode,
+  ],
 };
 
-export default function Editor({ setEditorContent, aiText, setSelectedContent, loadedContent }) {
+export default function Editor({ setEditorContent, aiText, setSelectedContent, loadedContent, setGetMarkdownContent }) {
   return (
     <div className="relative w-full h-full bg-gray-700 text-white rounded-lg shadow-xl">
       <LexicalComposer initialConfig={initialConfig}>
-        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} loadedContent={loadedContent} />
+        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} loadedContent={loadedContent} setGetMarkdownContent={setGetMarkdownContent} />
       </LexicalComposer>
     </div>
   );

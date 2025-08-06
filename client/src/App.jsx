@@ -27,8 +27,10 @@ function App() {
     rewrite: false
   });
   const [aiText, setAiText] = useState(null);
-
   const [loadedContent, setLoadedContent] = useState(null);
+
+  // New state to hold the export-to-markdown function
+  const [getMarkdownContent, setGetMarkdownContent] = useState(null);
 
   const handleGenerateText = async (promptType) => {
     setLoading(prev => ({ ...prev, [promptType]: true }));
@@ -113,6 +115,25 @@ function App() {
       alert('The document is empty. Nothing to export.');
     }
   };
+  
+  const handleExportMarkdown = () => {
+    if (getMarkdownContent) {
+      const markdownContent = getMarkdownContent();
+      if (markdownContent) {
+        const blob = new Blob([markdownContent], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'smart-scribe-document.md';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        alert('The document is empty. Nothing to export.');
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
@@ -129,6 +150,7 @@ function App() {
             setSelectedContent={setSelectedContent} 
             aiText={aiText}
             loadedContent={loadedContent}
+            setGetMarkdownContent={setGetMarkdownContent}
           />
         </div>
         <div className="md:col-span-1">
@@ -138,6 +160,7 @@ function App() {
             handleSaveDocument={handleSaveDocument}
             handleLoadDocument={handleLoadDocument}
             handleExportDocument={handleExportDocument} 
+            handleExportMarkdown={handleExportMarkdown}
           />
         </div>
       </div>
