@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { FaSpinner } from 'react-icons/fa';
 
 function AiButton({ label, icon, onClick, isLoading, promptType }) {
-  const isAiButton = ['continue', 'summarize', 'improve', 'rewrite', 'generateTitle'].includes(promptType);
+  const isAiButton = ['continue', 'summarize', 'improve', 'rewrite', 'generateTitle', 'checkSpelling'].includes(promptType);
 
   return (
     <button
