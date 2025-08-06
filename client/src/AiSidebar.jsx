@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import AiButton from './AiButton';
-import { FaMoon, FaSun, FaSave, FaFolderOpen, FaFileExport, FaCode, FaHeading } from 'react-icons/fa';
+import { FaMoon, FaSun, FaSave, FaFolderOpen, FaFileExport, FaCode, FaHeading, FaSpellCheck } from 'react-icons/fa';
 
 function AiSidebar({
   handleGenerateText,
@@ -46,6 +46,13 @@ function AiSidebar({
           icon={<FaHeading />}
           onClick={() => handleGenerateText('generateTitle')}
           isLoading={loading.generateTitle}
+        />
+        <AiButton
+          label="Check Spelling"
+          promptType="checkSpelling"
+          icon={<FaSpellCheck />}
+          onClick={() => handleGenerateText('checkSpelling')}
+          isLoading={loading.checkSpelling}
         />
       </div>
 
