@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -6,7 +7,7 @@ import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { $getRoot, $createParagraphNode, $createTextNode, $getSelection, $isRangeSelection, CLEAR_EDITOR_COMMAND } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useEffect } from 'react';
+import { useEffect, forwardRef, useImperativeHandle } from 'react';
 import { LinkPlugin } from '@lexical/react/LexicalLinkPlugin';
 import { ListItemNode, ListNode } from '@lexical/list';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
@@ -35,8 +36,21 @@ const theme = {
   placeholder: "text-gray-500 overflow-hidden text-ellipsis"
 };
 
-function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedContent, setGetMarkdownContent }) {
+const MyCustomEditor = forwardRef(({ setEditorContent, aiText, setSelectedContent, loadedContent, setGetMarkdownContent }, ref) => {
   const [editor] = useLexicalComposerContext();
+
+  useImperativeHandle(ref, () => ({
+    clearEditor: () => {
+      editor.dispatchCommand(CLEAR_EDITOR_COMMAND, undefined);
+    },
+    getMarkdownContent: () => {
+      let markdownString = '';
+      editor.getEditorState().read(() => {
+        markdownString = $convertToMarkdownString(TRANSFORMERS);
+      });
+      return markdownString;
+    },
+  }));
 
   const handleChange = (editorState) => {
     editorState.read(() => {
@@ -85,7 +99,6 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedCo
     }
   }, [loadedContent, editor]);
   
-  // NEW: Expose the getMarkdownContent function to the parent component
   useEffect(() => {
     const getMarkdown = () => {
       let markdownString = '';
@@ -98,12 +111,12 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedCo
   }, [editor, setGetMarkdownContent]);
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <Toolbar />
-      <div className="relative p-4">
+      <div className="relative p-4 flex-grow overflow-y-auto">
         <RichTextPlugin
-          contentEditable={<ContentEditable className="outline-none resize-none min-h-[300px]" />}
-          placeholder={<div className="absolute top-0 left-0 p-4 pointer-events-none text-gray-500">Start writing...</div>}
+          contentEditable={<ContentEditable className="outline-none resize-none min-h-[300px] h-full" />}
+          placeholder={<div className="absolute top-4 left-4 pointer-events-none text-gray-500">Start writing...</div>}
           ErrorBoundary={LexicalErrorBoundary}
         />
       </div>
@@ -111,9 +124,9 @@ function MyCustomEditor({ setEditorContent, aiText, setSelectedContent, loadedCo
       <ListPlugin />
       <LinkPlugin />
       <OnChangePlugin onChange={handleChange} />
-    </>
+    </div>
   );
-}
+});
 
 const initialConfig = {
   namespace: 'SmartScribeEditor',
@@ -130,12 +143,22 @@ const initialConfig = {
   ],
 };
 
-export default function Editor({ setEditorContent, aiText, setSelectedContent, loadedContent, setGetMarkdownContent }) {
+const Editor = forwardRef(({ setEditorContent, aiText, setSelectedContent, loadedContent, setGetMarkdownContent }, ref) => {
   return (
-    <div className="relative w-full h-full bg-gray-700 text-white rounded-lg shadow-xl">
+    <div className="relative w-full h-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-xl">
       <LexicalComposer initialConfig={initialConfig}>
-        <MyCustomEditor setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} loadedContent={loadedContent} setGetMarkdownContent={setGetMarkdownContent} />
+        <MyCustomEditor ref={ref} setEditorContent={setEditorContent} aiText={aiText} setSelectedContent={setSelectedContent} loadedContent={loadedContent} setGetMarkdownContent={setGetMarkdownContent} />
       </LexicalComposer>
     </div>
   );
-}
+});
+
+Editor.propTypes = {
+  setEditorContent: PropTypes.func.isRequired,
+  aiText: PropTypes.string,
+  setSelectedContent: PropTypes.func.isRequired,
+  loadedContent: PropTypes.string,
+  setGetMarkdownContent: PropTypes.func.isRequired,
+};
+
+export default Editor;

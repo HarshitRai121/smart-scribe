@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Editor from './Editor';
 import AiSidebar from './AiSidebar';
+import Header from './Header';
 
 const getPromptText = (promptType, content) => {
   switch (promptType) {
@@ -39,6 +40,9 @@ function App() {
   const [loadedContent, setLoadedContent] = useState(null);
   const [getMarkdownContent, setGetMarkdownContent] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [title, setTitle] = useState("Untitled Document");
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -52,27 +56,29 @@ function App() {
     setIsDarkMode(prevMode => !prevMode);
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarVisible(prev => !prev);
+  };
+
   const handleGenerateText = async (promptType) => {
     setLoading(prev => ({ ...prev, [promptType]: true }));
-
     const contentToSend = selectedContent || editorContent;
     const finalPrompt = getPromptText(promptType, contentToSend);
-
     try {
       const response = await fetch('/api/generate-text', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: finalPrompt }),
       });
-
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-      
       const data = await response.json();
-      setAiText(data.text);
+      if (promptType === 'generateTitle') {
+        setTitle(data.text);
+      } else {
+        setAiText(data.text);
+      }
     } catch (error) {
       console.error('Error fetching AI response:', error);
       alert('Error fetching AI response.');
@@ -141,17 +147,27 @@ function App() {
     }
   };
 
+  const handleClearEditor = () => {
+    if (editorRef.current) {
+      editorRef.current.clearEditor();
+      setEditorContent('');
+      setAiText(null);
+      setLoadedContent(null);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white text-gray-900 p-4 dark:bg-gray-900 dark:text-white transition-colors duration-300">
-      <div className="flex flex-col items-center justify-center mb-8">
-        <h1 className="text-4xl font-bold">Smart Scribe</h1>
-        <p className="text-lg text-gray-400">
-          AI-Powered Document Editor
-        </p>
-      </div>
-      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="md:col-span-2">
+    <div className="min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-300">
+      <Header
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
+        toggleSidebar={toggleSidebar}
+        title={title}
+      />
+      <div className="flex h-screen w-full max-w-7xl mx-auto pt-16">
+        <div className={`p-6 w-full transition-all duration-300 ${isSidebarVisible ? 'md:mr-64' : 'md:mr-0'}`}>
           <Editor
+            ref={editorRef}
             setEditorContent={setEditorContent}
             setSelectedContent={setSelectedContent}
             aiText={aiText}
@@ -159,18 +175,17 @@ function App() {
             setGetMarkdownContent={setGetMarkdownContent}
           />
         </div>
-        <div className="md:col-span-1">
-          <AiSidebar
-            handleGenerateText={handleGenerateText}
-            loading={loading}
-            handleSaveDocument={handleSaveDocument}
-            handleLoadDocument={handleLoadDocument}
-            handleExportDocument={handleExportDocument}
-            handleExportMarkdown={handleExportMarkdown}
-            isDarkMode={isDarkMode}
-            toggleDarkMode={toggleDarkMode}
-          />
-        </div>
+        <AiSidebar
+          handleGenerateText={handleGenerateText}
+          loading={loading}
+          handleSaveDocument={handleSaveDocument}
+          handleLoadDocument={handleLoadDocument}
+          handleExportDocument={handleExportDocument}
+          handleExportMarkdown={handleExportMarkdown}
+          handleClearEditor={handleClearEditor}
+          isSidebarVisible={isSidebarVisible}
+          toggleSidebar={toggleSidebar}
+        />
       </div>
     </div>
   );
