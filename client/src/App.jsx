@@ -28,9 +28,23 @@ function App() {
   });
   const [aiText, setAiText] = useState(null);
   const [loadedContent, setLoadedContent] = useState(null);
-
-  // New state to hold the export-to-markdown function
   const [getMarkdownContent, setGetMarkdownContent] = useState(null);
+
+  // New state for dark mode
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // Effect to apply or remove the 'dark' class on the html element
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => {
+    setIsDarkMode(prevMode => !prevMode);
+  };
 
   const handleGenerateText = async (promptType) => {
     setLoading(prev => ({ ...prev, [promptType]: true }));
@@ -136,7 +150,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4">
+    <div className="min-h-screen bg-white text-gray-900 p-4 dark:bg-gray-900 dark:text-white transition-colors duration-300">
       <div className="flex flex-col items-center justify-center mb-8">
         <h1 className="text-4xl font-bold">Smart Scribe</h1>
         <p className="text-lg text-gray-400">
@@ -161,6 +175,8 @@ function App() {
             handleLoadDocument={handleLoadDocument}
             handleExportDocument={handleExportDocument} 
             handleExportMarkdown={handleExportMarkdown}
+            isDarkMode={isDarkMode}
+            toggleDarkMode={toggleDarkMode}
           />
         </div>
       </div>
