@@ -16,8 +16,12 @@
       "destination": "/server/index.js"
     },
     {
-      "source": "/(.*)",
+      "source": "/(.*\\.(?:css|js|map|ico|gif|png|jpg|jpeg|svg|eot|otf|ttf|woff|woff2))",
       "destination": "/client/dist/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/client/dist/index.html"
     }
   ]
 }
