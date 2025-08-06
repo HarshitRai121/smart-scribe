@@ -11,7 +11,9 @@ const getPromptText = (promptType, content) => {
     case 'continue':
       return `Continue writing from the following text:\n\n${content}`;
     case 'rewrite':
-        return `Rewrite the following text to improve its clarity and flow:\n\n${content}`;
+      return `Rewrite the following text to improve its clarity and flow:\n\n${content}`;
+    case 'generateTitle':
+      return `Generate a concise and compelling title for the following text:\n\n${content}`;
     default:
       return content;
   }
@@ -24,16 +26,14 @@ function App() {
     continue: false,
     summarize: false,
     improve: false,
-    rewrite: false
+    rewrite: false,
+    generateTitle: false,
   });
   const [aiText, setAiText] = useState(null);
   const [loadedContent, setLoadedContent] = useState(null);
   const [getMarkdownContent, setGetMarkdownContent] = useState(null);
-
-  // New state for dark mode
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  // Effect to apply or remove the 'dark' class on the html element
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -65,22 +65,8 @@ function App() {
         throw new Error('Network response was not ok');
       }
       
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-      let aiResponseText = '';
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        const chunk = decoder.decode(value);
-        if (chunk) {
-          aiResponseText += chunk;
-        }
-      }
-
-      setAiText(aiResponseText);
-
+      const data = await response.json();
+      setAiText(data.text);
     } catch (error) {
       console.error('Error fetching AI response:', error);
       alert('Error fetching AI response.');
@@ -129,7 +115,7 @@ function App() {
       alert('The document is empty. Nothing to export.');
     }
   };
-  
+
   const handleExportMarkdown = () => {
     if (getMarkdownContent) {
       const markdownContent = getMarkdownContent();
@@ -159,21 +145,21 @@ function App() {
       </div>
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
-          <Editor 
-            setEditorContent={setEditorContent} 
-            setSelectedContent={setSelectedContent} 
+          <Editor
+            setEditorContent={setEditorContent}
+            setSelectedContent={setSelectedContent}
             aiText={aiText}
             loadedContent={loadedContent}
             setGetMarkdownContent={setGetMarkdownContent}
           />
         </div>
         <div className="md:col-span-1">
-          <AiSidebar 
-            handleGenerateText={handleGenerateText} 
+          <AiSidebar
+            handleGenerateText={handleGenerateText}
             loading={loading}
             handleSaveDocument={handleSaveDocument}
             handleLoadDocument={handleLoadDocument}
-            handleExportDocument={handleExportDocument} 
+            handleExportDocument={handleExportDocument}
             handleExportMarkdown={handleExportMarkdown}
             isDarkMode={isDarkMode}
             toggleDarkMode={toggleDarkMode}
